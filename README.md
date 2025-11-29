@@ -6,7 +6,12 @@
 [![Dart SDK](https://img.shields.io/badge/Dart-3.0%2B-blue.svg?style=flat-square)](https://dart.dev)
 [![Flutter](https://img.shields.io/badge/Flutter-3.10%2B-blue.svg?style=flat-square)](https://flutter.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/github/actions/workflow/status/kra-connect/flutter-sdk/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/kra-connect/flutter-sdk/actions)
+
+## Repository
+
+- **GitHub**: [BerjisTech/kra-connect-flutter-sdk](https://github.com/BerjisTech/kra-connect-flutter-sdk)
+- **Pub.dev**: [kra_connect](https://pub.dev/packages/kra_connect)
+- **Documentation**: [https://docs.kra-connect.dev/flutter](https://docs.kra-connect.dev/flutter)
 
 ## Features
 
@@ -478,23 +483,65 @@ flutter test --coverage
 flutter test test/kra_client_test.dart
 ```
 
+## Publishing
+
+### Publishing to Pub.dev
+
+```bash
+# Update version in pubspec.yaml
+# Update CHANGELOG.md
+
+# Ensure all files are properly formatted
+dart format .
+
+# Analyze code
+dart analyze
+
+# Run tests
+flutter test
+
+# Dry run to check package
+dart pub publish --dry-run
+
+# Publish to pub.dev
+dart pub publish
+```
+
+### GitHub Release
+
+```bash
+# Tag the release
+git tag -a v1.0.0 -m "Release version 1.0.0"
+git push origin v1.0.0
+
+# Create GitHub release
+gh release create v1.0.0 --title "v1.0.0" --notes "Release notes here"
+```
+
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+Contributions are welcome! Please:
+
+1. Fork the repository: [BerjisTech/kra-connect-flutter-sdk](https://github.com/BerjisTech/kra-connect-flutter-sdk)
+2. Create a feature branch
+3. Make your changes with tests
+4. Submit a pull request
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](./LICENSE) for details.
 
 ## Support
 
-- Issues: https://github.com/kra-connect/flutter-sdk/issues
-- Documentation: https://pub.dev/packages/kra_connect
-- Examples: [example/](example/)
+- **Issues**: [GitHub Issues](https://github.com/BerjisTech/kra-connect-flutter-sdk/issues)
+- **Documentation**: [pub.dev/packages/kra_connect](https://pub.dev/packages/kra_connect)
+- **Discussions**: [GitHub Discussions](https://github.com/BerjisTech/kra-connect-flutter-sdk/discussions)
+- **Examples**: [example/](example/)
 
 ## Related SDKs
 
-- [Python SDK](https://github.com/kra-connect/python-sdk)
-- [Node.js SDK](https://github.com/kra-connect/node-sdk)
-- [PHP SDK](https://github.com/kra-connect/php-sdk)
-- [Go SDK](https://github.com/kra-connect/go-sdk)
+- [Python SDK](https://github.com/BerjisTech/kra-connect-python-sdk)
+- [Node.js SDK](https://github.com/BerjisTech/kra-connect-node-sdk)
+- [PHP SDK](https://github.com/BerjisTech/kra-connect-php-sdk)
+- [Go SDK](https://github.com/BerjisTech/kra-connect-go-sdk)
+- [CLI Tool](https://github.com/BerjisTech/kra-cli)
