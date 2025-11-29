@@ -1,0 +1,55 @@
+name: kra_connect
+description: Official Flutter/Dart SDK for Kenya Revenue Authority's GavaConnect API - Tax compliance and verification for Kenya
+version: 0.1.0
+homepage: https://github.com/kra-connect/flutter-sdk
+repository: https://github.com/kra-connect/flutter-sdk
+issue_tracker: https://github.com/kra-connect/flutter-sdk/issues
+documentation: https://pub.dev/packages/kra_connect
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  meta: ^1.10.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  test: ^1.24.0
+  mockito: ^5.4.0
+  build_runner: ^2.4.0
+
+flutter:
+  # This package does not contain any Flutter-specific UI components
+  # It's a pure Dart package that works with Flutter
+
+# Topics for pub.dev
+topics:
+  - kra
+  - kenya
+  - tax
+  - compliance
+  - verification
+  - api-client
+  - gavaconnect
+
+# Funding
+funding:
+  - https://github.com/sponsors/kra-connect
+
+# Screenshots (for pub.dev)
+screenshots: []
+
+# Platforms
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
