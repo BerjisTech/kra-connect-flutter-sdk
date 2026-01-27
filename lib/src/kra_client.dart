@@ -98,9 +98,9 @@ class KraClient {
   Future<PinVerificationResult> verifyPin(String pin) async {
     Validators.validatePin(pin);
 
-    final response = await _httpClient.get(
-      '/verify-pin',
-      queryParams: {'pin': pin.trim().toUpperCase()},
+    final response = await _httpClient.post(
+      '/checker/v1/pinbypin',
+      body: {'KRAPIN': pin.trim().toUpperCase()},
     );
 
     return PinVerificationResult.fromJson(response);
@@ -127,34 +127,42 @@ class KraClient {
       Validators.validatePin(pin);
     }
 
-    final response = await _httpClient.post(
-      '/verify-pin-batch',
-      body: {
-        'pins': pins.map((p) => p.trim().toUpperCase()).toList(),
-      },
-    );
-
-    final results = response['results'] as List;
-    return results
-        .map((r) => PinVerificationResult.fromJson(r as Map<String, dynamic>))
-        .toList();
+    // Verify each PIN individually using the correct endpoint
+    final results = <PinVerificationResult>[];
+    for (final pin in pins) {
+      try {
+        final result = await verifyPin(pin);
+        results.add(result);
+      } catch (e) {
+        results.add(PinVerificationResult(
+          pinNumber: pin,
+          isValid: false,
+          errorMessage: e.toString(),
+        ));
+      }
+    }
+    return results;
   }
 
   /// Verifies a Tax Compliance Certificate (TCC) number.
   ///
   /// Example:
   /// ```dart
-  /// final result = await client.verifyTcc('TCC123456');
+  /// final result = await client.verifyTcc('TCC123456', 'P051234567A');
   /// if (result.isValid && !result.isExpired) {
   ///   print('Valid TCC, expires on: ${result.expiryDate}');
   /// }
   /// ```
-  Future<TccVerificationResult> verifyTcc(String tcc) async {
+  Future<TccVerificationResult> verifyTcc(String tcc, String kraPIN) async {
     Validators.validateTcc(tcc);
+    Validators.validatePin(kraPIN);
 
-    final response = await _httpClient.get(
-      '/verify-tcc',
-      queryParams: {'tcc': tcc.trim().toUpperCase()},
+    final response = await _httpClient.post(
+      '/v1/kra-tcc/validate',
+      body: {
+        'kraPIN': kraPIN.trim().toUpperCase(),
+        'tccNumber': tcc.trim().toUpperCase(),
+      },
     );
 
     return TccVerificationResult.fromJson(response);
@@ -162,11 +170,13 @@ class KraClient {
 
   /// Verifies multiple TCC numbers in batch.
   ///
+  /// Note: Each TCC requires an associated PIN for verification.
+  ///
   /// Example:
   /// ```dart
   /// final results = await client.verifyTccBatch([
-  ///   'TCC123456',
-  ///   'TCC789012',
+  ///   {'tcc': 'TCC123456', 'pin': 'P051234567A'},
+  ///   {'tcc': 'TCC789012', 'pin': 'P059876543B'},
   /// ]);
   ///
   /// for (final result in results) {
@@ -174,24 +184,29 @@ class KraClient {
   /// }
   /// ```
   Future<List<TccVerificationResult>> verifyTccBatch(
-    List<String> tccs,
+    List<Map<String, String>> tccRequests,
   ) async {
-    // Validate all TCCs
-    for (final tcc in tccs) {
-      Validators.validateTcc(tcc);
+    // Validate all TCCs and PINs
+    for (final request in tccRequests) {
+      Validators.validateTcc(request['tcc']!);
+      Validators.validatePin(request['pin']!);
     }
 
-    final response = await _httpClient.post(
-      '/verify-tcc-batch',
-      body: {
-        'tccs': tccs.map((t) => t.trim().toUpperCase()).toList(),
-      },
-    );
-
-    final results = response['results'] as List;
-    return results
-        .map((r) => TccVerificationResult.fromJson(r as Map<String, dynamic>))
-        .toList();
+    // Verify each TCC individually using the correct endpoint
+    final results = <TccVerificationResult>[];
+    for (final request in tccRequests) {
+      try {
+        final result = await verifyTcc(request['tcc']!, request['pin']!);
+        results.add(result);
+      } catch (e) {
+        results.add(TccVerificationResult(
+          tccNumber: request['tcc']!,
+          isValid: false,
+          errorMessage: e.toString(),
+        ));
+      }
+    }
+    return results;
   }
 
   /// Validates an e-slip number.
@@ -207,9 +222,9 @@ class KraClient {
   Future<EslipValidationResult> validateEslip(String eslip) async {
     Validators.validateEslip(eslip);
 
-    final response = await _httpClient.get(
-      '/validate-eslip',
-      queryParams: {'eslip': eslip.trim().toUpperCase()},
+    final response = await _httpClient.post(
+      '/payment/checker/v1/eslip',
+      body: {'EslipNumber': eslip.trim().toUpperCase()},
     );
 
     return EslipValidationResult.fromJson(response);
@@ -236,17 +251,21 @@ class KraClient {
       Validators.validateEslip(eslip);
     }
 
-    final response = await _httpClient.post(
-      '/validate-eslip-batch',
-      body: {
-        'eslips': eslips.map((e) => e.trim().toUpperCase()).toList(),
-      },
-    );
-
-    final results = response['results'] as List;
-    return results
-        .map((r) => EslipValidationResult.fromJson(r as Map<String, dynamic>))
-        .toList();
+    // Validate each e-slip individually using the correct endpoint
+    final results = <EslipValidationResult>[];
+    for (final eslip in eslips) {
+      try {
+        final result = await validateEslip(eslip);
+        results.add(result);
+      } catch (e) {
+        results.add(EslipValidationResult(
+          eslipNumber: eslip,
+          isValid: false,
+          errorMessage: e.toString(),
+        ));
+      }
+    }
+    return results;
   }
 
   /// Files a NIL return for a specified tax period.
@@ -255,10 +274,9 @@ class KraClient {
   /// ```dart
   /// final request = NilReturnRequest(
   ///   pinNumber: 'P051234567A',
-  ///   obligationType: 'VAT',
-  ///   taxPeriod: '2024-01',
-  ///   reason: 'No business activity',
-  ///   declaration: true,
+  ///   obligationCode: 1,
+  ///   month: 1,
+  ///   year: 2024,
   /// );
   ///
   /// final result = await client.fileNilReturn(request);
@@ -273,8 +291,15 @@ class KraClient {
     }
 
     final response = await _httpClient.post(
-      '/file-nil-return',
-      body: request.toJson(),
+      '/dtd/return/v1/nil',
+      body: {
+        'TAXPAYERDETAILS': {
+          'TaxpayerPIN': request.pinNumber.trim().toUpperCase(),
+          'ObligationCode': request.obligationCode,
+          'Month': request.month,
+          'Year': request.year,
+        },
+      },
     );
 
     return NilReturnResult.fromJson(response);
@@ -297,13 +322,24 @@ class KraClient {
   /// ```
   Future<TaxpayerDetails> getTaxpayerDetails(String pin) async {
     Validators.validatePin(pin);
+    final normalizedPin = pin.trim().toUpperCase();
 
-    final response = await _httpClient.get(
-      '/taxpayer-details',
-      queryParams: {'pin': pin.trim().toUpperCase()},
+    // Make API requests to GavaConnect endpoints (profile + obligations)
+    final profileResponse = await _httpClient.post(
+      '/checker/v1/pinbypin',
+      body: {'KRAPIN': normalizedPin},
     );
 
-    return TaxpayerDetails.fromJson(response);
+    final obligationsResponse = await _httpClient.post(
+      '/dtd/checker/v1/obligation',
+      body: {'taxPayerPin': normalizedPin},
+    );
+
+    // Combine profile and obligations data
+    final combinedResponse = Map<String, dynamic>.from(profileResponse);
+    combinedResponse['obligations'] = obligationsResponse['obligations'] ?? [];
+
+    return TaxpayerDetails.fromJson(combinedResponse);
   }
 
   /// Clears all cached data.
